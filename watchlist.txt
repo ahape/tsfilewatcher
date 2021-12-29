@@ -1,0 +1,2 @@
+c:\src\projects\BrightMetricsWeb\BrightMetricsWeb.BrightMetricsWebUI\UI-2\scripts\build\brightmetrics.js::c:\src\azure\BrightmetricsWeb\UI-2\scripts\build\brightmetrics.js
+c:\src\projects\BrightMetricsWeb\BrightMetricsWeb.BrightMetricsWebUI\UI-2\styles\build\brightmetrics.css::c:\src\azure\BrightmetricsWeb\UI-2\styles\build\brightmetrics.css
