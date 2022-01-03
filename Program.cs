@@ -3,16 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Concurrent;
 
 namespace MyNamespace
 {
     class MyClassCS
     {
-        /// <summary>File containing a list of {absolute/path/to/source::absolute/path/to/dest} entries</summary>
+        /// <summary>
+        /// File containing a list of {absolute/path/to/source::absolute/path/to/dest} entries
+        /// </summary>
         static IEnumerable<IEnumerable<string>> mappings;
 
-        static ConcurrentDictionary<string, object> filesBeingWritten = new();
+        static ConcurrentDictionary<string, CancellationTokenSource> filesToWrite = new();
 
         static ConcurrentDictionary<string, FileSystemWatcher> watchers = new();
 
@@ -42,12 +45,7 @@ namespace MyNamespace
 
                 if (!watchers.TryGetValue(sourceInfo.DirectoryName, out FileSystemWatcher watcher))
                 {
-                    watcher = new FileSystemWatcher(sourceInfo.DirectoryName);
-                    watcher.NotifyFilter = NotifyFilters.LastWrite;
-                    watcher.IncludeSubdirectories = false;
-                    watcher.EnableRaisingEvents = true;
-                    watcher.Changed += OnChanged;
-
+                    watcher = CreateWatcher(sourceInfo.DirectoryName);
                     watchers.TryAdd(sourceInfo.DirectoryName, watcher);
                 }
 
@@ -65,6 +63,16 @@ namespace MyNamespace
             Console.ReadLine();
         }
 
+        private static FileSystemWatcher CreateWatcher(string path)
+        {
+            var watcher = new FileSystemWatcher(path);
+            watcher.NotifyFilter = NotifyFilters.LastWrite;
+            watcher.IncludeSubdirectories = false;
+            watcher.EnableRaisingEvents = true;
+            watcher.Changed += OnChanged;
+            return watcher;
+        }
+
         private static void OnChanged(object sender, FileSystemEventArgs e)
         {
             if (e.ChangeType != WatcherChangeTypes.Changed)
@@ -80,29 +88,32 @@ namespace MyNamespace
                 Path.Combine(watcher.Path, x.ElementAt(0)) == e.FullPath);
 
             if (mappingEntry == null)
-                return;
-                // throw new Exception("Couldn't find mapping entry");
+                return; // Ignore changes in files we aren't explicitly watching.
 
             var source = Path.Combine(watcher.Path, mappingEntry.ElementAt(0));
             var dest = mappingEntry.ElementAt(1);
+            var cts = new CancellationTokenSource();
 
-            new Thread(() => 
+            if (filesToWrite.ContainsKey(dest))
             {
-                if (!filesBeingWritten.ContainsKey(dest))
-                {
-                    object v = new object();
-                    filesBeingWritten.TryAdd(dest, v);
+                filesToWrite[dest].Cancel();
+                filesToWrite[dest] = cts;
+            }
+            else
+                filesToWrite.TryAdd(dest, cts);
 
+            // Debounce any operations so that the last OnChanged wins
+            Task.Delay(1000).ContinueWith(ignore =>
+            {
+                if (!cts.Token.IsCancellationRequested)
+                {
                     File.Copy(source, dest, true);
 
                     Console.WriteLine("Copied entry\n\t{0} ->\n\t{1}", source, dest);
 
-                    // Debounce if necessary
-                    Thread.Sleep(1000);
-
-                    filesBeingWritten.TryRemove(dest, out v);
+                    filesToWrite.TryRemove(dest, out _);
                 }
-            }).Start();
+            }, cts.Token);
         }
 
         private static void OnCreated(object sender, FileSystemEventArgs e)

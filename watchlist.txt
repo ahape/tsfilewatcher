@@ -1,2 +1,3 @@
 c:\src\projects\BrightMetricsWeb\BrightMetricsWeb.BrightMetricsWebUI\UI-2\scripts\build\brightmetrics.js::c:\src\azure\BrightmetricsWeb\UI-2\scripts\build\brightmetrics.js
 c:\src\projects\BrightMetricsWeb\BrightMetricsWeb.BrightMetricsWebUI\UI-2\styles\build\brightmetrics.css::c:\src\azure\BrightmetricsWeb\UI-2\styles\build\brightmetrics.css
+c:\src\projects\BrightMetricsWeb\BrightMetricsWeb.BrightMetricsWebUI\UI-2\templates\c2g\voiceanalytics\voice-analytics-template.html::c:\src\azure\BrightmetricsWeb\UI-2\templates\c2g\voiceanalytics\voice-analytics-template.html
