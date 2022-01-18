@@ -11,7 +11,7 @@ namespace MyNamespace
     class MyClassCS
     {
         /// <summary>
-        /// File containing a list of {absolute/path/to/source::absolute/path/to/dest} entries
+        /// File containing a list of {absolute/path/to/source -> absolute/path/to/dest} entries
         /// </summary>
         static IEnumerable<IEnumerable<string>> mappings;
 
@@ -26,8 +26,8 @@ namespace MyNamespace
 
             mappings = File.ReadAllText("watchlist.txt")
                 .Split('\n')
-                .Where(x => x.Contains("::"))
-                .Select(x => x.Split("::").Select(y => y.Trim()));
+                .Where(x => x.Contains(" -> "))
+                .Select(x => x.Split(" -> ").Select(y => y.Trim()));
 
             Console.WriteLine("Current mapping entries:");
 
