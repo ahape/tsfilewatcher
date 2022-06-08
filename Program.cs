@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace MyNamespace
 {
@@ -24,7 +25,8 @@ namespace MyNamespace
             if (!File.Exists("watchlist.txt"))
                 throw new Exception("You need a watchlist.txt file");
 
-            mappings = File.ReadAllText("watchlist.txt")
+            mappings = Regex.Split(File.ReadAllText("watchlist.txt"), "###")
+                .First()
                 .Split('\n')
                 .Where(x => x.Contains(" -> "))
                 .Select(x => x.Split(" -> ").Select(y => y.Trim()));
